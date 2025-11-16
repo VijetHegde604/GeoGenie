@@ -9,17 +9,17 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.vijethegde.GeoGenie"
     },
     "android": {
-      "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/geogenie_logo.png",
-        "backgroundImage": "./assets/images/geogenie_logo.png",
-        "monochromeImage": "./assets/images/geogenie_logo.png"
-      },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.vijethegde.GeoGenie",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/geogenie_logo.png",
+        "backgroundColor": "#E6F4FE"
+      }
     },
     "web": {
       "output": "static",
@@ -30,7 +30,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/geogenie_logo.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",
@@ -44,6 +44,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "820cc77f-04d0-4e5e-80f0-43612bf30727"
+      }
     }
   }
 }

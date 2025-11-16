@@ -13,13 +13,11 @@ export const LandmarksAPI = {
   },
 
   addLandmark: async (name: string) => {
-    const form = new FormData();
-    form.append("name", name);
+  const form = new FormData();
+  form.append("name", name);
 
-    const res = await api.post("/landmarks/add", form, {
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    });
+  const res = await api.post("/landmarks/add", form);
+  return res.data;
+},
 
-    return res.data;
-  },
 };

@@ -5,41 +5,84 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 export default function RecognizedScreen() {
   const { place, confidence, image } = useLocalSearchParams();
 
-  // FIX: always use a single string
+  // --------------------------
+  // 🔤 BEAUTIFY LANDMARK NAME
+  // --------------------------
+  function beautifyName(name: string): string {
+    if (!name) return "Unknown Place";
+
+    // Replace underscores / dashes with spaces
+    let cleaned = name.replace(/[_-]+/g, " ").trim();
+
+    // Capitalize every word
+    cleaned = cleaned.replace(/\b\w+/g, (w) => w[0].toUpperCase() + w.slice(1));
+
+    // Special common cases
+    cleaned = cleaned
+      .replace(/\bIskcon\b/i, "ISKCON")
+      .replace(/\bSai\b/i, "Sai")
+      .replace(/\bIit\b/i, "IIT")
+      .replace(/\bIiisc\b/i, "IISc");
+
+    return cleaned;
+  }
+
+  // Fix param array issue
   const imageUri = Array.isArray(image) ? image[0] : image;
+  const rawName = String(place);
+  const prettified = beautifyName(rawName);
+
+  const isUnknown =
+    rawName.toLowerCase() === "unknown" ||
+    rawName.toLowerCase() === "unknown_place";
 
   return (
     <View style={styles.container}>
       <Image source={{ uri: imageUri as string }} style={styles.preview} />
 
       <View style={styles.card}>
-        <Text style={styles.title}>We found a match!</Text>
-
-        <Text style={styles.placeName}>{place}</Text>
-        <Text style={styles.conf}>
-          Confidence: {(Number(confidence) * 100).toFixed(1)}%
+        <Text style={styles.title}>
+          {isUnknown ? "No Match Found" : "We Found a Match!"}
         </Text>
 
-        <Text style={styles.question}>Is this correct?</Text>
+        <Text style={styles.placeName}>
+          {isUnknown ? "Unknown Place" : prettified}
+        </Text>
+
+        {!isUnknown && (
+          <Text style={styles.conf}>
+            Confidence: {(Number(confidence) * 100).toFixed(1)}%
+          </Text>
+        )}
+
+        <Text style={styles.question}>
+          {isUnknown
+            ? "Would you like to help us identify it?"
+            : "Is this correct?"}
+        </Text>
 
         <View style={styles.buttons}>
-          <TouchableOpacity
-            style={[styles.btn, styles.yesBtn]}
-            onPress={() =>
-              router.push({
-                pathname: "/(tabs)/chat",
-                params: { place },
-              })
-            }
-          >
-            <Text style={styles.btnText}>Yes</Text>
-          </TouchableOpacity>
+          {!isUnknown && (
+            <TouchableOpacity
+              style={[styles.btn, styles.yesBtn]}
+              onPress={() =>
+                router.push({
+                  pathname: "/(tabs)/chat",
+                  params: { place: prettified },
+                })
+              }
+            >
+              <Text style={styles.btnText}>Yes</Text>
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity
             style={[styles.btn, styles.noBtn]}
             onPress={() => router.push("/(tabs)/feedback")}
           >
-            <Text style={styles.btnText}>No</Text>
+            <Text style={styles.btnText}>
+              {isUnknown ? "Add Info" : "No"}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -47,6 +90,9 @@ export default function RecognizedScreen() {
   );
 }
 
+// ---------------------
+// 🎨 STYLES
+// ---------------------
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -61,27 +107,27 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   card: {
-    backgroundColor: "rgba(20,20,20,0.8)",
-    padding: 20,
+    backgroundColor: "rgba(20,20,20,0.85)",
+    padding: 22,
     borderRadius: 20,
     shadowColor: "#000",
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
   },
   title: {
     color: "#8AB4F8",
     fontSize: 22,
     fontWeight: "600",
-    marginBottom: 6,
+    marginBottom: 8,
   },
   placeName: {
     fontSize: 28,
     color: "white",
     fontWeight: "700",
-    marginBottom: 2,
+    marginBottom: 4,
   },
   conf: {
-    color: "#BBB",
+    color: "#BBBBBB",
     marginBottom: 18,
   },
   question: {
