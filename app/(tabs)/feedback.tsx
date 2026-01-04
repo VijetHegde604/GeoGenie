@@ -20,6 +20,12 @@ import {
 import { ActivityIndicator, Button, Text, TextInput } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+/* ------------------------------------------
+   DISPLAY FORMATTER (UI ONLY)
+------------------------------------------ */
+const formatLandmarkName = (name: string) =>
+  name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
 export default function FeedbackScreen() {
   const scrollRef = useRef<ScrollView>(null);
 
@@ -119,20 +125,13 @@ export default function FeedbackScreen() {
     try {
       setLoading(true);
 
-      // detect MIME type (best effort)
       const mime = (Mime.lookup(imageUri) as string | false) || "image/jpeg";
-      console.log("📌 USING MIME:", mime);
 
-      // ---- STEP 1: upload image ----
       const uploadRes = await FeedbackAPI.uploadImage(imageUri, mime);
-      console.log("📦 Upload response:", uploadRes);
-
       const image_id = uploadRes?.image_id;
-      if (!image_id) {
-        throw new Error("Backend did not return image_id");
-      }
 
-      // ---- STEP 2: send metadata ----
+      if (!image_id) throw new Error("Backend did not return image_id");
+
       await FeedbackAPI.updateMeta(image_id, selected, desc, lat, lng);
 
       Toast.show({ type: "success", text1: "🎉 Feedback submitted!" });
@@ -195,7 +194,6 @@ export default function FeedbackScreen() {
                 }}
                 style={styles.searchInput}
                 textColor="#fff"
-                mode="flat"
                 underlineColor="transparent"
               />
               {selected && (
@@ -207,7 +205,9 @@ export default function FeedbackScreen() {
 
             {selected && (
               <View style={styles.selectedChip}>
-                <Text style={{ color: "#fff" }}>{selected}</Text>
+                <Text style={{ color: "#fff" }}>
+                  {formatLandmarkName(selected)}
+                </Text>
               </View>
             )}
 
@@ -219,11 +219,13 @@ export default function FeedbackScreen() {
                     style={styles.dropdownItem}
                     onPress={() => {
                       setSelected(item);
-                      setSearch(item);
+                      setSearch(formatLandmarkName(item));
                       setFiltered([]);
                     }}
                   >
-                    <Text style={{ color: "#fff" }}>{item}</Text>
+                    <Text style={{ color: "#fff" }}>
+                      {formatLandmarkName(item)}
+                    </Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -233,7 +235,8 @@ export default function FeedbackScreen() {
               <TouchableOpacity
                 style={styles.newItem}
                 onPress={() => {
-                  setSelected(search.trim());
+                  setSelected(search.trim().replace(/\s+/g, "_"));
+                  setSearch(formatLandmarkName(search.trim()));
                   setFiltered([]);
                 }}
               >
@@ -251,7 +254,6 @@ export default function FeedbackScreen() {
               multiline
               style={styles.input}
               textColor="#fff"
-              outlineColor="#333"
             />
 
             {/* LOCATION */}
@@ -346,11 +348,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 10,
   },
-  searchInput: {
-    flex: 1,
-    backgroundColor: "transparent",
-    color: "#fff",
-  },
+  searchInput: { flex: 1, backgroundColor: "transparent", color: "#fff" },
   dropdown: {
     backgroundColor: "#111",
     borderRadius: 12,
