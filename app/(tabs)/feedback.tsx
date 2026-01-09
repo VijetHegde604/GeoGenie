@@ -6,7 +6,7 @@ import * as Location from "expo-location";
 import * as Mime from "react-native-mime-types";
 import Toast from "react-native-toast-message";
 
-import { useEffect, useRef, useState } from "react";
+import { useMemo, useRef, useState, useCallback } from "react";
 import {
   Image,
   Keyboard,
@@ -19,6 +19,7 @@ import {
 } from "react-native";
 import { ActivityIndicator, Button, Text, TextInput } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect } from '@react-navigation/native';
 
 /* ------------------------------------------
    DISPLAY FORMATTER (UI ONLY)
@@ -32,7 +33,6 @@ export default function FeedbackScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [allLandmarks, setAllLandmarks] = useState<string[]>([]);
   const [search, setSearch] = useState("");
-  const [filtered, setFiltered] = useState<string[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [desc, setDesc] = useState("");
   const [lat, setLat] = useState("");
@@ -42,24 +42,41 @@ export default function FeedbackScreen() {
   // ------------------------------------------
   // LOAD LANDMARK LIST
   // ------------------------------------------
-  useEffect(() => {
-    LandmarksAPI.listFolders()
-      .then((res) => {
-        console.log("📍 Landmark list:", res);
-        if (Array.isArray(res?.landmarks)) setAllLandmarks(res.landmarks);
-        else Toast.show({ type: "error", text1: "Invalid landmark response" });
-      })
-      .catch((err) => console.log("❌ Landmark fetch error:", err));
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
 
-  useEffect(() => {
-    if (!search.trim()) {
-      setFiltered([]);
-      return;
-    }
-    const q = search.toLowerCase();
-    setFiltered(allLandmarks.filter((n) => n.toLowerCase().includes(q)));
-  }, [search, allLandmarks]);
+      LandmarksAPI.listFolders()
+        .then((res) => {
+          if (!active) return;
+
+          console.log("📍 Landmark list (focus):", res);
+          if (Array.isArray(res?.landmarks)) {
+            setAllLandmarks(res.landmarks);
+          } else {
+            Toast.show({ type: "error", text1: "Invalid landmark response" });
+          }
+        })
+        .catch((err) => {
+          if (active) console.log("❌ Landmark fetch error:", err);
+        });
+
+      return () => {
+        active = false;
+      };
+    }, []),
+  );
+
+  // ------------------------------------------
+  // AGGRESSIVE + SAFE FILTERING (useMemo)
+  // ------------------------------------------
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+
+    if (!q || selected) return [];
+
+    return allLandmarks.filter((n) => n.toLowerCase().includes(q));
+  }, [search, allLandmarks, selected]);
 
   // ------------------------------------------
   // IMAGE PICKER
@@ -112,7 +129,7 @@ export default function FeedbackScreen() {
   };
 
   // ------------------------------------------
-  // SUBMIT FEEDBACK (2 STEP FLOW)
+  // SUBMIT FEEDBACK
   // ------------------------------------------
   const submitFeedback = async () => {
     if (!imageUri) {
@@ -220,7 +237,6 @@ export default function FeedbackScreen() {
                     onPress={() => {
                       setSelected(item);
                       setSearch(formatLandmarkName(item));
-                      setFiltered([]);
                     }}
                   >
                     <Text style={{ color: "#fff" }}>
@@ -237,7 +253,6 @@ export default function FeedbackScreen() {
                 onPress={() => {
                   setSelected(search.trim().replace(/\s+/g, "_"));
                   setSearch(formatLandmarkName(search.trim()));
-                  setFiltered([]);
                 }}
               >
                 <Ionicons name="add-circle-outline" size={20} color="#8AB4F8" />

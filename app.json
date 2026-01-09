@@ -1,25 +1,22 @@
 {
   "expo": {
     "name": "GeoGenie",
-    "slug": "GeoGenie",
+    "slug": "geogenie",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/geogenie_logo.png",
     "scheme": "geogenie",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.vijethegde.GeoGenie"
-    },
     "android": {
-      "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false,
       "package": "com.vijethegde.GeoGenie",
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/geogenie_logo.png",
         "backgroundColor": "#E6F4FE"
-      }
+      },
+      "edgeToEdge": true,
+      "permissions": []
     },
     "web": {
       "output": "static",
@@ -48,8 +45,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "820cc77f-04d0-4e5e-80f0-43612bf30727"
+        "projectId": "f0294c63-5ec6-4425-aee1-a48164f5682a"
       }
-    }
+    },
+    "owner": "vijethegde"
   }
 }
