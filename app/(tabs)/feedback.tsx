@@ -3,7 +3,6 @@ import { LandmarksAPI } from "@/api/landmarks";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
-import * as Mime from "react-native-mime-types";
 import Toast from "react-native-toast-message";
 
 import { useMemo, useRef, useState, useCallback } from "react";
@@ -26,6 +25,21 @@ import { useFocusEffect } from '@react-navigation/native';
 ------------------------------------------ */
 const formatLandmarkName = (name: string) =>
   name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+const guessMimeType = (uri: string) => {
+  const extension = uri.split(".").pop()?.toLowerCase();
+
+  switch (extension) {
+    case "png":
+      return "image/png";
+    case "heic":
+      return "image/heic";
+    case "webp":
+      return "image/webp";
+    default:
+      return "image/jpeg";
+  }
+};
 
 export default function FeedbackScreen() {
   const scrollRef = useRef<ScrollView>(null);
@@ -142,7 +156,7 @@ export default function FeedbackScreen() {
     try {
       setLoading(true);
 
-      const mime = (Mime.lookup(imageUri) as string | false) || "image/jpeg";
+      const mime = guessMimeType(imageUri);
 
       const uploadRes = await FeedbackAPI.uploadImage(imageUri, mime);
       const image_id = uploadRes?.image_id;
