@@ -1,50 +1,81 @@
-# Welcome to your Expo app 👋
+# GeoGenie (Expo)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+GeoGenie is a mobile app that identifies landmarks from a photo and shows context such as confidence/source, map, weather, and follow-up chat/history tools. The app is built with **Expo Router + React Native** and is intended to run in **Expo Go** for day-to-day development.
 
-## Get started
+---
 
-1. Install dependencies
+## What's in this repository
 
-   ```bash
-   npm install
-   ```
+- `app/` — Expo Router screens and navigation structure.
+- `components/` — shared UI components.
+- `api/` — API client used for recognition and app data requests.
+- `store/` — Zustand state for image upload + recognition flow.
+- `assets/` — icons/images/fonts.
 
-2. Start the app
+See detailed setup docs in [`docs/SETUP.md`](docs/SETUP.md) and troubleshooting in [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md).
 
-   ```bash
-   npx expo start
-   ```
+---
 
-In the output, you'll find options to open the app in a
+## Tech stack
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- Expo SDK 54
+- Expo Router
+- React Native + React 19
+- React Native Paper
+- Zustand
+- Axios
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+---
 
-## Get a fresh project
+## Prerequisites
 
-When you're ready, run:
+- **Node.js 20 LTS** (recommended)
+- **npm 10+**
+- Expo Go installed on your physical device
+
+---
+
+## Quick start
 
 ```bash
-npm run reset-project
+npm install
+npm run start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Then:
+1. Scan the QR code from terminal/DevTools with Expo Go.
+2. Allow camera/photo permissions when prompted.
+3. Test with a monument/landmark image.
 
-## Learn more
+---
 
-To learn more about developing your project with Expo, look at the following resources:
+## Available scripts
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- `npm run start` — start Metro for native app development.
+- `npm run android` — run native Android project.
+- `npm run ios` — run native iOS project.
+- `npm run web` — run as web app.
+- `npm run lint` — run Expo lint.
+- `npm run typecheck` — run TypeScript type checks.
+- `npm run doctor` — run Expo dependency diagnostics (`expo-doctor`).
 
-## Join the community
+---
 
-Join our community of developers creating universal apps.
+## API configuration
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+The app currently reads its base URL from `api/clients.ts`.
+
+If your backend is hosted elsewhere, update the `API_URL` constant in that file before launching the app.
+
+---
+
+## Expo Go compatibility notes
+
+This repository has been cleaned up to avoid legacy CLI/runtime dependencies that commonly break modern Expo Go workflows. If Expo Go cannot connect, use the troubleshooting guide.
+
+---
+
+## Documentation
+
+- Setup: [`docs/SETUP.md`](docs/SETUP.md)
+- Troubleshooting: [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md)
