@@ -1,5 +1,5 @@
 // app/(tabs)/index.tsx
-import api from "@/api/clients";
+import { RecognizeAPI } from "@/api/recognize";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { StyleSheet, View } from "react-native";
@@ -17,15 +17,7 @@ export default function CameraScreen() {
     clear();
 
     try {
-      const filename = uri.split("/").pop()!;
-      const form = new FormData();
-      form.append("image", { uri, name: filename, type: "image/jpeg" } as any);
-
-      const res = await api.post("/recognize", form, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      const result = res.data;
+      const result = await RecognizeAPI.recognize(uri);
 
       // Navigate to recognition result screen
       router.push({
