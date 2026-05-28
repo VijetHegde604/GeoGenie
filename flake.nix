@@ -6,16 +6,23 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
-    flake-utils.lib.eachDefaultSystem (system:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
       let
         pkgs = import nixpkgs { inherit system; };
-      in {
+      in
+      {
         devShells.default = pkgs.mkShell {
           name = "geogenie-dev-shell";
 
           packages = with pkgs; [
-            nodejs_20
+            nodejs
             watchman
             jq
             git
@@ -32,5 +39,6 @@
             echo "Run: npm install && npm run start"
           '';
         };
-      });
+      }
+    );
 }
