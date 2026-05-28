@@ -1,6 +1,7 @@
 // api/recognize.ts
 import { Platform } from "react-native";
 import api from "./clients";
+import { runUploadTask } from "./uploadQueue";
 
 const getImageParts = (uri: string) => {
   const originalFilename = uri.split("/").pop() || "photo.jpg";
@@ -39,20 +40,21 @@ const appendImage = async (
 };
 
 export const RecognizeAPI = {
-  recognize: async (uri: string, latitude?: number, longitude?: number) => {
-    const { filename, mime } = getImageParts(uri);
-    const form = new FormData();
+  recognize: async (uri: string, latitude?: number, longitude?: number) =>
+    runUploadTask(async () => {
+      const { filename, mime } = getImageParts(uri);
+      const form = new FormData();
 
-    await appendImage(form, "file", uri, filename, mime);
-    await appendImage(form, "image", uri, filename, mime);
+      await appendImage(form, "file", uri, filename, mime);
+      await appendImage(form, "image", uri, filename, mime);
 
-    if (latitude !== undefined) form.append("latitude", String(latitude));
-    if (longitude !== undefined) form.append("longitude", String(longitude));
+      if (latitude !== undefined) form.append("latitude", String(latitude));
+      if (longitude !== undefined) form.append("longitude", String(longitude));
 
-    const res = await api.post("/recognize", form, {
-      headers: Platform.OS === "web" ? undefined : { "Content-Type": "multipart/form-data" },
-      timeout: 45000,
-    });
-    return res.data;
-  },
+      const res = await api.post("/recognize", form, {
+        headers: Platform.OS === "web" ? undefined : { "Content-Type": "multipart/form-data" },
+        timeout: 45000,
+      });
+      return res.data;
+    }),
 };

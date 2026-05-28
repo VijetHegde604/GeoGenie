@@ -1,5 +1,26 @@
 import { Platform } from "react-native";
 import api from "./clients";
+import { runUploadTask } from "./uploadQueue";
+
+const appendFeedbackFile = async (form: FormData, uri: string, mime: string) => {
+  const filename = `feedback.${mime.split("/")[1] || "jpg"}`;
+
+  if (Platform.OS === "web") {
+    const blob = await fetch(uri).then((response) => response.blob());
+    const uploadBlob =
+      typeof File !== "undefined"
+        ? new File([blob], filename, { type: blob.type || mime })
+        : blob;
+    form.append("file", uploadBlob, filename);
+    return;
+  }
+
+  form.append("file", {
+    uri,
+    name: filename,
+    type: mime,
+  } as any);
+};
 
 const appendFeedbackFile = async (form: FormData, uri: string, mime: string) => {
   const filename = `feedback.${mime.split("/")[1] || "jpg"}`;
@@ -22,14 +43,15 @@ const appendFeedbackFile = async (form: FormData, uri: string, mime: string) => 
 };
 
 export const FeedbackAPI = {
-  uploadImage: async (uri: string, mime: string) => {
-    const form = new FormData();
-    await appendFeedbackFile(form, uri, mime);
+  uploadImage: async (uri: string, mime: string) =>
+    runUploadTask(async () => {
+      const form = new FormData();
+      await appendFeedbackFile(form, uri, mime);
 
-    return (await api.post("/feedback/upload", form, {
-      headers: Platform.OS === "web" ? undefined : { "Content-Type": "multipart/form-data" },
-    })).data;
-  },
+      return (await api.post("/feedback/upload", form, {
+        headers: Platform.OS === "web" ? undefined : { "Content-Type": "multipart/form-data" },
+      })).data;
+    }),
 
   updateMeta: async (
     image_id: number | string,
