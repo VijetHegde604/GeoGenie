@@ -3,10 +3,17 @@ import api from "./clients";
 
 export const RecognizeAPI = {
   recognize: async (uri: string, latitude?: number, longitude?: number) => {
-    const filename = uri.split("/").pop() || "photo.jpg";
-    const mime = filename.toLowerCase().endsWith(".png")
-      ? "image/png"
-      : "image/jpeg";
+    const originalFilename = uri.split("/").pop() || "photo.jpg";
+    const ext = originalFilename.split(".").pop()?.toLowerCase();
+    const filename = ext ? `photo.${ext}` : "photo.jpg";
+    const mime =
+      ext === "png"
+        ? "image/png"
+        : ext === "heic"
+          ? "image/heic"
+          : ext === "webp"
+            ? "image/webp"
+            : "image/jpeg";
 
     const form = new FormData();
 
@@ -14,6 +21,7 @@ export const RecognizeAPI = {
     const isWeb = typeof window !== "undefined";
     if (isWeb) {
       const blob = await fetch(uri).then((r) => r.blob());
+      form.append("file", blob, filename);
       form.append("image", blob, filename);
     } else {
       const filePart = {
@@ -21,6 +29,7 @@ export const RecognizeAPI = {
         name: filename,
         type: mime,
       } as any;
+      form.append("file", filePart);
       form.append("image", filePart);
     }
 
@@ -28,9 +37,8 @@ export const RecognizeAPI = {
     if (longitude !== undefined) form.append("longitude", String(longitude));
 
     const res = await api.post("/recognize", form, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
+      headers: { "Content-Type": "multipart/form-data" },
+      timeout: 45000,
     });
 
     return res.data;
