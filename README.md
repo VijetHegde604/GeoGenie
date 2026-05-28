@@ -79,3 +79,24 @@ This repository has been cleaned up to avoid legacy CLI/runtime dependencies tha
 
 - Setup: [`docs/SETUP.md`](docs/SETUP.md)
 - Troubleshooting: [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md)
+
+## Troubleshooting
+
+### Expo hangs at `Waiting for Watchman \`watch-project\``
+
+This repo disables Watchman in two places:
+- `metro.config.js` sets `watcher.useWatchman = false`.
+- npm scripts export `EXPO_NO_WATCHMAN=1` before invoking Expo CLI.
+
+Use the npm scripts (not raw `npx expo start`) so the environment variable is applied:
+
+```bash
+npm run start
+```
+
+If you still hit this in your environment, restart Expo after cleaning cache:
+
+```bash
+EXPO_NO_WATCHMAN=1 npx expo start --clear
+```
+
