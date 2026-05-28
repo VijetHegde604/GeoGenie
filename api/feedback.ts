@@ -22,6 +22,26 @@ const appendFeedbackFile = async (form: FormData, uri: string, mime: string) => 
   } as any);
 };
 
+const appendFeedbackFile = async (form: FormData, uri: string, mime: string) => {
+  const filename = `feedback.${mime.split("/")[1] || "jpg"}`;
+
+  if (Platform.OS === "web") {
+    const blob = await fetch(uri).then((response) => response.blob());
+    const uploadBlob =
+      typeof File !== "undefined"
+        ? new File([blob], filename, { type: blob.type || mime })
+        : blob;
+    form.append("file", uploadBlob, filename);
+    return;
+  }
+
+  form.append("file", {
+    uri,
+    name: filename,
+    type: mime,
+  } as any);
+};
+
 export const FeedbackAPI = {
   uploadImage: async (uri: string, mime: string) =>
     runUploadTask(async () => {
