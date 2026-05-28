@@ -1,41 +1,60 @@
 // api/recognize.ts
+import { Platform } from "react-native";
 import api from "./clients";
+import { runUploadTask } from "./uploadQueue";
+
+const getImageParts = (uri: string) => {
+  const originalFilename = uri.split("/").pop() || "photo.jpg";
+  const rawExt = originalFilename.split(".").pop()?.toLowerCase();
+  const ext = rawExt && rawExt !== originalFilename ? rawExt : "jpg";
+  const filename = `photo.${ext}`;
+
+  const mime =
+    ext === "png"
+      ? "image/png"
+      : ext === "webp"
+        ? "image/webp"
+        : "image/jpeg"; // covers jpeg, heic, content URIs, and anything unknown
+
+  return { filename, mime };
+};
+
+const appendImage = async (
+  form: FormData,
+  fieldName: string,
+  uri: string,
+  filename: string,
+  mime: string,
+) => {
+  if (Platform.OS === "web") {
+    const blob = await fetch(uri).then((response) => response.blob());
+    const uploadBlob =
+      typeof File !== "undefined"
+        ? new File([blob], filename, { type: blob.type || mime })
+        : blob;
+    form.append(fieldName, uploadBlob, filename);
+    return;
+  }
+
+  form.append(fieldName, { uri, name: filename, type: mime } as any);
+};
 
 export const RecognizeAPI = {
-  recognize: async (uri: string, latitude?: number, longitude?: number) => {
-    const originalFilename = uri.split("/").pop() || "photo.jpg";
-    const ext = originalFilename.split(".").pop()?.toLowerCase();
-    const filename = ext ? `photo.${ext}` : "photo.jpg";
+  recognize: async (uri: string, latitude?: number, longitude?: number) =>
+    runUploadTask(async () => {
+      const { filename, mime } = getImageParts(uri);
+      const form = new FormData();
 
-    const isWeb = typeof window !== "undefined";
+      await appendImage(form, "file", uri, filename, mime);
+      await appendImage(form, "image", uri, filename, mime);
 
-    // Android doesn't support HEIC — always fall back to jpeg for unknown/heic
-    const mime =
-      ext === "png"
-        ? "image/png"
-        : ext === "webp"
-          ? "image/webp"
-          : "image/jpeg"; // covers jpeg, heic, and anything else
+      if (latitude !== undefined) form.append("latitude", String(latitude));
+      if (longitude !== undefined) form.append("longitude", String(longitude));
 
-    const form = new FormData();
-
-    if (isWeb) {
-      const blob = await fetch(uri).then((r) => r.blob());
-      form.append("file", blob, filename);
-      form.append("image", blob, filename);
-    } else {
-      // Separate object literals per append — reusing the same reference breaks Android
-      form.append("file", { uri, name: filename, type: mime } as any);
-      form.append("image", { uri, name: filename, type: mime } as any);
-    }
-
-    if (latitude !== undefined) form.append("latitude", String(latitude));
-    if (longitude !== undefined) form.append("longitude", String(longitude));
-
-    const res = await api.post("/recognize", form, {
-      headers: { "Content-Type": "multipart/form-data" },
-      timeout: 45000,
-    });
-    return res.data;
-  },
+      const res = await api.post("/recognize", form, {
+        headers: Platform.OS === "web" ? undefined : { "Content-Type": "multipart/form-data" },
+        timeout: 45000,
+      });
+      return res.data;
+    }),
 };
