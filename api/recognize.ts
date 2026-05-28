@@ -6,31 +6,27 @@ export const RecognizeAPI = {
     const originalFilename = uri.split("/").pop() || "photo.jpg";
     const ext = originalFilename.split(".").pop()?.toLowerCase();
     const filename = ext ? `photo.${ext}` : "photo.jpg";
+
+    const isWeb = typeof window !== "undefined";
+
+    // Android doesn't support HEIC — always fall back to jpeg for unknown/heic
     const mime =
       ext === "png"
         ? "image/png"
-        : ext === "heic"
-          ? "image/heic"
-          : ext === "webp"
-            ? "image/webp"
-            : "image/jpeg";
+        : ext === "webp"
+          ? "image/webp"
+          : "image/jpeg"; // covers jpeg, heic, and anything else
 
     const form = new FormData();
 
-    // Expo native accepts { uri, name, type } while web requires a Blob/File.
-    const isWeb = typeof window !== "undefined";
     if (isWeb) {
       const blob = await fetch(uri).then((r) => r.blob());
       form.append("file", blob, filename);
       form.append("image", blob, filename);
     } else {
-      const filePart = {
-        uri,
-        name: filename,
-        type: mime,
-      } as any;
-      form.append("file", filePart);
-      form.append("image", filePart);
+      // Separate object literals per append — reusing the same reference breaks Android
+      form.append("file", { uri, name: filename, type: mime } as any);
+      form.append("image", { uri, name: filename, type: mime } as any);
     }
 
     if (latitude !== undefined) form.append("latitude", String(latitude));
@@ -40,7 +36,6 @@ export const RecognizeAPI = {
       headers: { "Content-Type": "multipart/form-data" },
       timeout: 45000,
     });
-
     return res.data;
   },
 };
